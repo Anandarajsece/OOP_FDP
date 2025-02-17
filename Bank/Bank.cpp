@@ -111,7 +111,7 @@ void Menu::createAccount()
     balance=0;
     cout<<"Enter pin: ";
     cin>>pin;
-    file<<name<<accountNumber<<" "<<pin<<" "<<balance<<endl;
+    file<<accountNumber<<" "<<name<<" "<<pin<<" "<<balance<<endl;
     cout<<name<<"Account created successfully "<<"Acc No"<<accountNumber<<endl;
     file.close();
 }
@@ -157,13 +157,14 @@ void Menu::deposit()
     tempFile.open("temp.txt",ios::out);
     while(file>>accountNumber>>pin)
     {
-        tempFile<<accountNumber<<" "<<pin<<endl;
-        if(accountNumber==1000)
+        if(accountNumber==accountNumber)
         {
-            tempFile<<amount<<endl;
+            balance+=amount;
+            tempFile<<accountNumber<<" "<<pin<<" "<<balance<<endl;
         }
     }
     cout<<"Amount deposited successfully"<<endl;
+    cout<<"New balance: "<<balance<<endl;
     file.close();
     tempFile.close();
     remove("Account.txt");
