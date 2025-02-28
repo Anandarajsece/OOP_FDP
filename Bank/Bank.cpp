@@ -65,11 +65,11 @@ void Bank::showAccount() {
     
     while (file >> acc.accountNumber >> acc.name >> acc.pin >> acc.balance) {
         if (acc.accountNumber == loggedInAccount) {
-            cout << "\n📜 Account Details:\n";
+            cout << "\n Account Details:\n";
             cout << "-------------------------\n";
             cout << "Account Number: " << acc.accountNumber << endl;
             cout << "Name: " << acc.name << endl;
-            cout << "Balance: $" << acc.balance << endl;
+            cout << "Balance: Rs" << acc.balance << endl;
             cout << "-------------------------\n";
             break;
         }
@@ -208,7 +208,7 @@ void Bank::transfer() {
     remove("Account.txt");
     rename("Temp.txt", "Account.txt");
 
-    cout << " Transfer Successful! $" << amount << " sent to Account " << toAcc << ".\n";
+    cout << " Transfer Successful! Rs" << amount << " sent to Account " << toAcc << ".\n";
 }
 
 //  Secure Login (Returns Logged-in Account Number)
