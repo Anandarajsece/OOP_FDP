@@ -1,226 +1,261 @@
-//Bank management system using file handling
-#include<iostream>
-#include<fstream>
-#include<string>
-#include<sstream>
-using namespace std;
-int accountNumber;
-int pin;
-int balance;
-class Menu
-{
-    public:
-        void mainMenu();
-        void createAccount();
-        void showAccount();
-        void deposit();
-        void login();
-        int getLastAccountNumber();
-        void withdraw();
-        void Transfer();
-        void welcomeScreen();
-};
-void Menu::login()
-{
-    int accountNumber;
-    int pin;
-    cout<<"Enter account number: ";
-    cin>>accountNumber;
-    cout<<"Enter pin: ";
-    cin>>pin;
-    ifstream file;
-    file.open("Account.txt",ios::in);
-    while(file>>accountNumber>>pin)
-    {
-        if(accountNumber==accountNumber && pin==pin)
-        {
-            cout<<"Login successful"<<endl;
-            break;
-        }
-    }
-    file.close();
-}
-void Menu::mainMenu()
-{
-    int choice;
-    cout<<"1. Create Account"<<endl;    
-    cout<<"2. Show Account"<<endl;
-    cout<<"3. Deposit"<<endl;
-    cout<<"4. Withdraw"<<endl;
-    cout<<"5. Transfer"<<endl;
-    cout<<"6. Exit"<<endl;
-    cout<<"Enter your choice: ";
-    cin>>choice;
-    if(choice==1)
-    {
-        createAccount();
-        mainMenu();
-    }
-    else if(choice==2)
-    {
-        //login();
-        showAccount();
-        mainMenu();
-    }
-    else if(choice==3)
-    {
-        deposit();
-        mainMenu();
-    }
-    else if(choice==4)
-    {
-        withdraw();
-        mainMenu();
-    }
-    else if(choice==5)
-    {
-        Transfer();
-        mainMenu();
-    }
-    else if(choice==6)
-    {
-        cout<<"Thank you for using our service"<<endl;
-    }
-    else
-    {
-        cout<<"Invalid choice"<<endl;
-        mainMenu();
-    }
-}
-int Menu::getLastAccountNumber()
-{
-    ifstream file;
-    int lastAccountNumber=1000;
-    file.open("Account.txt",ios::in);
-    while(file>>accountNumber>>pin)
-    {
-    lastAccountNumber=accountNumber;
-    }
-    file.close();
-    
-    return lastAccountNumber;
-}
-void Menu::createAccount()
-{
-    ofstream file;
-    file.open("Account.txt",ios::app);
-    char name[50];
-    cout<<"Enter name: ";
-    cin>>name;
-    accountNumber=getLastAccountNumber()+1;
-    balance=0;
-    cout<<"Enter pin: ";
-    cin>>pin;
-    file<<accountNumber<<" "<<name<<" "<<pin<<" "<<balance<<endl;
-    cout<<name<<"Account created successfully "<<"Acc No"<<accountNumber<<endl;
-    file.close();
-}
-void Menu::showAccount()
-{
-    cout<<"Enter account number: ";
-    cin>>accountNumber;
-    cout<<"Enter pin: ";
-    cin>>pin;
-    ifstream file;
-    file.open("Account.txt",ios::in);
-    while(file>>accountNumber>>pin)
-    {
-        if(accountNumber==accountNumber && pin==pin)
-        {
-            cout<<"Account Number: "<<accountNumber<<endl;
-            cout<<"Pin: "<<pin<<endl;
-            cout<<"Balance: "<<balance<<endl;
-            break;
-        }
-        
-    }
-    file.close();
-}
-void Menu::welcomeScreen()
-{
-    cout<<"**********************************"<<endl;
-    cout<<"Welcome to Bank Management System"<<endl;
-    cout<<"**********************************"<<endl;
-}
-void Menu::deposit()
-{
-    int amount;
-    cout<<"Enter account number: ";
-    cin>>accountNumber;
-    cout<<"Enter pin: ";
-    cin>>pin;
-    cout<<"Enter amount to deposit: ";
-    cin>>amount;
-    ifstream file;
-    ofstream tempFile;
-    file.open("Account.txt",ios::in);
-    tempFile.open("temp.txt",ios::out);
-    while(file>>accountNumber>>pin)
-    {
-        if(accountNumber==accountNumber)
-        {
-            balance+=amount;
-            tempFile<<accountNumber<<" "<<pin<<" "<<balance<<endl;
-        }
-    }
-    cout<<"Amount deposited successfully"<<endl;
-    cout<<"New balance: "<<balance<<endl;
-    file.close();
-    tempFile.close();
-    remove("Account.txt");
-    rename("temp.txt","Account.txt");
+#include <iostream>
+#include <fstream>
+#include <string>
 
+using namespace std;
+
+class Bank {
+private:
+    struct Account {
+        int accountNumber;
+        string name;
+        int pin;
+        double balance;
+    };
+
+public:
+    void mainMenu();
+    void createAccount();
+    void showAccount();
+    void deposit();
+    void withdraw();
+    void transfer();
+    bool login(int &loggedInAccount);
+    int generateUniqueAccountNumber();
+};
+
+// Generate Unique Account Number (Ensures No Duplicates)
+int Bank::generateUniqueAccountNumber() {
+    ifstream file("Account.txt");
+    int lastAccount = 1000; // Start from 1001
+
+    Account acc;
+    while (file >> acc.accountNumber >> acc.name >> acc.pin >> acc.balance) {
+        lastAccount = acc.accountNumber;
+    }
+    file.close();
+    return lastAccount + 1;
 }
-void Menu::withdraw()
-{
-    int amount;
-    cout<<"Enter amount to withdraw: ";
-    cin>>amount;
-    ifstream file;
-    ofstream tempFile;
-    file.open("Account.txt",ios::in);
-    tempFile.open("temp.txt",ios::out);
-    while(file>>accountNumber>>pin)
-    {
-        tempFile<<accountNumber<<" "<<pin<<endl;
-        if(accountNumber==1000)
-        {
-            tempFile<<amount<<endl;
+
+//  Create a New Account
+void Bank::createAccount() {
+    ofstream file("Account.txt", ios::app);
+    Account acc;
+
+    cout << "Enter your Name: ";
+    cin >> acc.name;
+    cout << "Set a 4-digit PIN: ";
+    cin >> acc.pin;
+    acc.accountNumber = generateUniqueAccountNumber();
+    acc.balance = 0;
+
+    file << acc.accountNumber << " " << acc.name << " " << acc.pin << " " << acc.balance << endl;
+    file.close();
+
+    cout << " Account Created Successfully! Your Account Number: " << acc.accountNumber << endl;
+}
+
+//  Show Account Details (After Login)
+void Bank::showAccount() {
+    int loggedInAccount;
+    if (!login(loggedInAccount)) return;
+
+    ifstream file("Account.txt");
+    Account acc;
+    
+    while (file >> acc.accountNumber >> acc.name >> acc.pin >> acc.balance) {
+        if (acc.accountNumber == loggedInAccount) {
+            cout << "\n📜 Account Details:\n";
+            cout << "-------------------------\n";
+            cout << "Account Number: " << acc.accountNumber << endl;
+            cout << "Name: " << acc.name << endl;
+            cout << "Balance: $" << acc.balance << endl;
+            cout << "-------------------------\n";
+            break;
         }
     }
     file.close();
-    tempFile.close();
-    remove("Account.txt");
-    rename("temp.txt","Account.txt");
-    cout<<"Amount withdrawn successfully"<<endl;
 }
-void Menu::Transfer()
-{
-    int amount;
-    cout<<"Enter amount to transfer: ";
-    cin>>amount;
-    ifstream file;
-    ofstream tempFile;
-    file.open("Account.txt",ios::in);
-    tempFile.open("temp.txt",ios::out);
-    while(file>>accountNumber>>pin)
-    {
-        tempFile<<accountNumber<<" "<<pin<<endl;
-        if(accountNumber==1000)
-        {
-            tempFile<<amount<<endl;
+
+//  Deposit Money (After Login)
+void Bank::deposit() {
+    int loggedInAccount;
+    if (!login(loggedInAccount)) return;
+
+    double amount;
+    cout << "Enter amount to deposit: ";
+    cin >> amount;
+
+    ifstream file("Account.txt");
+    ofstream tempFile("Temp.txt");
+    Account acc;
+
+    while (file >> acc.accountNumber >> acc.name >> acc.pin >> acc.balance) {
+        if (acc.accountNumber == loggedInAccount) {
+            acc.balance += amount;
+            cout << " Deposited Successfully! New Balance: $" << acc.balance << endl;
         }
+        tempFile << acc.accountNumber << " " << acc.name << " " << acc.pin << " " << acc.balance << endl;
     }
+
     file.close();
     tempFile.close();
     remove("Account.txt");
-    rename("temp.txt","Account.txt");
-    cout<<"Amount transferred successfully"<<endl;
+    rename("Temp.txt", "Account.txt");
 }
-int main()
-{
-    Menu menu;
-    menu.welcomeScreen();
-    menu.mainMenu();
+
+//  Withdraw Money (After Login)
+void Bank::withdraw() {
+    int loggedInAccount;
+    if (!login(loggedInAccount)) return;
+
+    double amount;
+    cout << "Enter amount to withdraw: ";
+    cin >> amount;
+
+    ifstream file("Account.txt");
+    ofstream tempFile("Temp.txt");
+    Account acc;
+    bool success = false;
+
+    while (file >> acc.accountNumber >> acc.name >> acc.pin >> acc.balance) {
+        if (acc.accountNumber == loggedInAccount) {
+            if (acc.balance >= amount) {
+                acc.balance -= amount;
+                success = true;
+                cout << " Withdrawal Successful! New Balance: $" << acc.balance << endl;
+            } else {
+                cout << " Insufficient Funds!\n";
+            }
+        }
+        tempFile << acc.accountNumber << " " << acc.name << " " << acc.pin << " " << acc.balance << endl;
+    }
+
+    file.close();
+    tempFile.close();
+    remove("Account.txt");
+    rename("Temp.txt", "Account.txt");
+
+    if (!success) {
+        cout << " Withdrawal Failed!\n";
+    }
+}
+
+//  Transfer Money (After Login)
+void Bank::transfer() {
+    int fromAcc;
+    if (!login(fromAcc)) return;
+
+    int toAcc;
+    double amount;
+    bool senderFound = false, receiverFound = false;
+    Account sender, receiver, acc;
+
+    cout << "Enter Receiver's Account Number: ";
+    cin >> toAcc;
+    cout << "Enter Amount to Transfer: ";
+    cin >> amount;
+
+    if (fromAcc == toAcc) {
+        cout << " Cannot transfer money to the same account!\n";
+        return;
+    }
+
+    ifstream file("Account.txt");
+    ofstream tempFile("Temp.txt");
+
+    while (file >> acc.accountNumber >> acc.name >> acc.pin >> acc.balance) {
+        if (acc.accountNumber == fromAcc) {
+            if (acc.balance >= amount) {
+                sender = acc;
+                sender.balance -= amount;
+                senderFound = true;
+            } else {
+                cout << " Insufficient Balance!\n";
+            }
+        } else if (acc.accountNumber == toAcc) {
+            receiver = acc;
+            receiver.balance += amount;
+            receiverFound = true;
+        }
+    }
+    
+    file.close();
+
+    if (!senderFound) {
+        cout << " Invalid Sender Account or PIN!\n";
+        return;
+    }
+
+    if (!receiverFound) {
+        cout << " Invalid Receiver Account!\n";
+        return;
+    }
+
+    // Update File with New Balances
+    file.open("Account.txt");
+    while (file >> acc.accountNumber >> acc.name >> acc.pin >> acc.balance) {
+        if (acc.accountNumber == sender.accountNumber)
+            tempFile << sender.accountNumber << " " << sender.name << " " << sender.pin << " " << sender.balance << endl;
+        else if (acc.accountNumber == receiver.accountNumber)
+            tempFile << receiver.accountNumber << " " << receiver.name << " " << receiver.pin << " " << receiver.balance << endl;
+        else
+            tempFile << acc.accountNumber << " " << acc.name << " " << acc.pin << " " << acc.balance << endl;
+    }
+
+    file.close();
+    tempFile.close();
+    remove("Account.txt");
+    rename("Temp.txt", "Account.txt");
+
+    cout << " Transfer Successful! $" << amount << " sent to Account " << toAcc << ".\n";
+}
+
+//  Secure Login (Returns Logged-in Account Number)
+bool Bank::login(int &loggedInAccount) {
+    int inputAcc, inputPin;
+    cout << "Enter Account Number: ";
+    cin >> inputAcc;
+    cout << "Enter PIN: ";
+    cin >> inputPin;
+
+    ifstream file("Account.txt");
+    Account acc;
+    while (file >> acc.accountNumber >> acc.name >> acc.pin >> acc.balance) {
+        if (acc.accountNumber == inputAcc && acc.pin == inputPin) {
+            loggedInAccount = inputAcc;
+            cout << " Login Successful!\n";
+            return true;
+        }
+    }
+
+    cout << " Invalid Credentials!\n";
+    return false;
+}
+
+//  Main Menu
+void Bank::mainMenu() {
+    int choice;
+    do {
+        cout << "\nBANK MANAGEMENT SYSTEM\n";
+        cout << "1. Create Account\n2. Show Account\n3. Deposit\n4. Withdraw\n5. Transfer\n6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: createAccount(); break;
+            case 2: showAccount(); break;
+            case 3: deposit(); break;
+            case 4: withdraw(); break;
+            case 5: transfer(); break;
+            case 6: cout << "Thank you! Goodbye!\n"; return;
+            default: cout << "Invalid Choice!\n";
+        }
+    } while (true);
+}
+
+int main() {
+    Bank bank;
+    bank.mainMenu();
     return 0;
 }
