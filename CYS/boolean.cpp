@@ -16,7 +16,7 @@ using namespace std;
 int main() {
   
       // Creating a boolean variable
-    bool isTrue = true;  
+    bool isTrue = -10;  
     cout << isTrue;
     return 0;
 }
